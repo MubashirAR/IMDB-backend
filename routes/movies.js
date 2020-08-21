@@ -49,9 +49,9 @@ router.get('/', async function (req, res) {
   let { limit, skip, sortBy, reverse, searchVal, genre } = req.query;
   if (!isNaN(limit)) limit = parseInt(limit);
   if (!isNaN(skip)) skip = parseInt(skip);
-  if (limit > 50)
+  if (limit > 100)
     res.status(400).send({
-      msg: 'Limit can at most be 50',
+      msg: 'Limit can at most be 100',
     });
   let sort = sortBy && !isNaN(reverse) ? { [sortBy]: Number(reverse) } : { '99popularity': 1 };
   let query = searchVal
@@ -87,10 +87,18 @@ router.get('/', async function (req, res) {
     });
 });
 router.get('/genres', async function (req, res) {
-  res.send({
-    msg: 'Genre list fetched successfully!',
-    data: { genres: GENRES },
-  });
+  try {
+    let resp = await Genre.find({}).lean().exec()
+    res.send({
+      msg: 'Genre list fetched successfully!',
+      data: { genres: resp.map(g => g.name) },
+    });
+    
+  } catch (error) {
+    res.status(500).send({
+      msg: 'An unknown error occured. Please try again!'
+    })
+  }
 });
 router.post('/', authenticate, (req, res) => {
   createMissingGenre(req.body.genre)

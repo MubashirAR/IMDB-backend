@@ -15,13 +15,18 @@
 └── ...                 
 ```
 
-To launch the app `node bin/www`. The app will launch on port `3000`.
+To launch the app install the dependencies with `npm install` and launch with `node bin/www`. The app will launch on port **3000**.
 
-**Some improvements I'd make in a real app:**
-- I haven't had the chance to fix the sample data. There were some wierd things like "99popularity", imdb_score (imdbScore?) and spaces before genre names.
-- In a real world app it would be important to use validation on the server (e.g. Joi) to **sanitize** the input.
-- Similarly MongoDB URL should ideally be part of env.
-- Genres would be linked in Movies as a foriegn key, and that key would be used during inserts and updates
+**Some things I can improve:**
+- Add a **loader**.
+- I haven't had the chance to **fix the sample data**. There were some wierd things like "99popularity", imdb_score (imdbScore?) and spaces before genre names. Also trim inputs to remove whitespaces around.
+- **Sanitize** the input (e.g. Joi).
+- Similarly **MongoDB URL** should ideally be part of **environment**.
+- **Genres** would be linked in Movies as a **foriegn key**, and that key would be used during inserts and updates.
+- Check **authentication status** on app **load**.
+- Add frontend pagination. The UI for pagination is to be done.
+- Add a **searchable dropdown** for the genres input when adding movies.
+- Refresh Genres when creating/editing a movie.
 
 #### app.js
 
@@ -124,4 +129,3 @@ To delete a new movie, hit the `DELETE /api/movie` API. Note that this sets 'isA
     movieId: String // Mongodb _id of the movie
 }
 ```
-
