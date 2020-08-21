@@ -133,6 +133,12 @@ To delete a new movie, hit the `DELETE /api/movie` API. Note that this sets 'isA
 
 # Scaling The Application
 
+## Architecture
+
+![alt text][logo]
+
+[logo]: 5M.png "Logo Title Text 2"
+
 ## 5M Movies, 15M Users
 
 Running `db.getCollection('movies').stats({})` reveals that the average object size is close to 200 Bytes. This means that 5M records would need **1GB+ of storage**. Assuming we have 10K admins, in this case also nearly 200 bytes each, is around 2MB
