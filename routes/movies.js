@@ -3,10 +3,9 @@ var express = require('express');
 
 const constants = require('../constants');
 const { GENRES } = require('../constants');
-const { route } = require('./auth');
 const authenticate = require('../middleware/authenticate');
 var router = express.Router();
-var Movie = require('../lib/dbConnection').models.Movie;
+const { Movie, Genre } = require('../lib/dbConnection').models;
 /* GET users listing. */
 router.get('/single', authenticate, async function (req, res) {
   let { movieId } = req.query;
@@ -26,7 +25,6 @@ router.get('/single', authenticate, async function (req, res) {
 });
 router.get('/', async function (req, res) {
   let { limit, skip, sortBy, reverse, searchVal, genre } = req.query;
-  console.log(req.query, req.session);
   if (!isNaN(limit)) limit = parseInt(limit);
   if (!isNaN(skip)) skip = parseInt(skip);
   if (limit > 50)
@@ -44,8 +42,9 @@ router.get('/', async function (req, res) {
             name: new RegExp(searchVal + 'w*', 'g'),
           },
         ],
+        isActive: true
       }
-    : {};
+    : { isActive: true };
   if (genre) query.genre = { $all: genre.split(',') };
   console.log(query);
   Movie.find(query)
@@ -72,8 +71,7 @@ router.get('/genres', async function (req, res) {
   });
 });
 router.post('/', authenticate, (req, res) => {
-  let { name, director } = req.body;
-  Movie.create({ ...req.body, _createdBy: req.session.user._id })
+  Movie.create({ ...req.body, _createdBy: req.session.user._id, isActive: true })
     .then((data) => {
       res.send({
         msg: 'Movie added successfully',
@@ -87,22 +85,38 @@ router.post('/', authenticate, (req, res) => {
     });
 });
 router.put('/', authenticate, (req, res) => {
-  console.log(req.body)
-  Movie.updateOne({ _id: req.body.modelId }, { ...req.body, _createdBy: req.session.user._id })
-    .then((data) => {
-      res.send({
-        msg: 'Movie updated successfully',
-        data,
-      });
-    })
-    .catch((err) => {
-      res.status(500).send({
-        msg: `Sorry couldn't complete your request. Please try again.`,
-      });
+  // Ideally genres and movies should be linked via primary key foreign key
+  let newGenres = [];
+  Genre.find({
+    name: {
+      $in: req.body.genre,
+    },
+  })
+  .lean()
+  .exec()
+  .then((genres) => {
+    let existing = new Map();
+    genres.map((g) => existing.set(g.name));
+    req.body.genres.map((g) => (existing.has(g) ? null : newGenres.push({ name: g })));
+  })
+  .then((_) => {
+    if (newGenres.length) return Genre.insertMany(newGenres);
+  })
+  .then((_) => Movie.updateOne({ _id: req.body.modelId }, { ...req.body, _createdBy: req.session.user._id }))
+  .then((data) => {
+    res.send({
+      msg: 'Movie updated successfully',
+      data,
     });
+  })
+  .catch((err) => {
+    res.status(500).send({
+      msg: `Sorry couldn't complete your request. Please try again.`,
+    });
+  });
 });
 router.delete('/', authenticate, (req, res) => {
-  console.log(req.body)
+  console.log(req.body);
   Movie.updateOne({ _id: req.body.modelId }, { isActive: false })
     .then((data) => {
       res.send({
