@@ -10,11 +10,11 @@ let router = express.Router();
 router.use('/auth', authRouter);
 router.use('/movie', moviesRouter);
 /* GET home page. */
-// router.get('/', function(req, res, next) {
-//   console.log('route', req.session)
-//   res.status(404).send({
-//     msg: 'not found'
-//   })
-// });
+router.get('*', function(req, res, next) {
+  console.log('route', req.session)
+  res.status(404).send({
+    msg: 'not found'
+  })
+});
 
 module.exports = router;

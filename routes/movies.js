@@ -9,7 +9,7 @@ const { Movie, Genre } = require('../lib/dbConnection').models;
 
 // Services
 
-let createMissingGenre = oldGenres => {
+let createMissingGenre = (oldGenres) => {
   oldGenres = Array.isArray(oldGenres) ? oldGenres : [oldGenres];
   let newGenres = [];
   return Genre.find({
@@ -104,7 +104,7 @@ router.post('/', authenticate, (req, res) => {
       });
     })
     .catch((err) => {
-      console.log(err)
+      console.log(err);
       res.status(500).send({
         msg: `Sorry couldn't complete your request. Please try again.`,
       });
@@ -113,7 +113,7 @@ router.post('/', authenticate, (req, res) => {
 router.put('/', authenticate, (req, res) => {
   // Ideally genres and movies should be linked via primary key foreign key
   createMissingGenre(req.body.genre)
-    .then((_) => Movie.updateOne({ _id: req.body.modelId }, { ...req.body, _createdBy: req.session.user._id }))
+    .then((_) => Movie.updateOne({ _id: req.body.movieId }, { ...req.body, _createdBy: req.session.user._id }))
     .then((data) => {
       res.send({
         msg: 'Movie updated successfully',
@@ -128,7 +128,7 @@ router.put('/', authenticate, (req, res) => {
 });
 router.delete('/', authenticate, (req, res) => {
   console.log(req.body);
-  Movie.updateOne({ _id: req.body.modelId }, { isActive: false })
+  Movie.updateOne({ _id: mongoose.Types.ObjectId(req.body.movieId) }, { $set: { isActive: false } })
     .then((data) => {
       res.send({
         msg: 'Movie deleted successfully',
